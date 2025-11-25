@@ -4,7 +4,7 @@ from middlewares.auth_middleware import authentication
 from app import models
 from app.integrations.redis import init_redis
 from app.integrations.alchemy import SessionLocal, engine
-from app.routers import accounts, user, tts, subscription
+from app.routers import accounts, user, tts, subscription, storage
 from app.config import APP_ENV
 
 models.Base.metadata.create_all(bind=engine)
@@ -54,5 +54,6 @@ async def startup_event():
 # Routers
 app.include_router(tts.router)
 app.include_router(user.router)
+app.include_router(storage.router)
 app.include_router(accounts.router)
 app.include_router(subscription.router)

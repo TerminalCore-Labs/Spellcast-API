@@ -20,6 +20,12 @@ async def get_user_data(request: Request, db: Session = Depends(get_db)):
         'username': user.username,
         'isVerified': user.isVerified,
         'profilePic': user.profilePic or user.googlePic
-    }
-    
-    return ({ 'logged': True, 'userData': userData })     
+    }    
+    return ({ 'logged': True, 'userData': userData })
+
+
+
+
+
+
+
