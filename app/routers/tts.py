@@ -5,7 +5,7 @@ from app.integrations.alchemy import get_db
 from app.models.user import Users, UserSubscription
 from app.interfaces.editor import Node
 from app.integrations.fernet import decrypt_str
-from app.helpers.azure import build_ssml, remove_file
+from app.helpers.azure import build_ssml, remove_file, build_audio_timeline
 from app.config import DEFAULT_VOICE
 from app.utils.parser import parser_nodes
 import os, httpx
@@ -41,42 +41,46 @@ async def text_to_speech(body: Node, own_credentials: bool=False, db: Session = 
     else:
         raise HTTPException(status_code=403, detail="Process error. Please contact support.")
 
-    endpoint = f"https://{service_region}.tts.speech.microsoft.com/cognitiveservices/v1"
+    # endpoint = f"https://{service_region}.tts.speech.microsoft.com/cognitiveservices/v1"
     
-    headers = {
-        "Ocp-Apim-Subscription-Key": azure_api_key,
-        "Content-Type": "application/ssml+xml",
-        "X-Microsoft-OutputFormat": "audio-16khz-32kbitrate-mono-mp3",
-        "User-Agent": "fastapi-tts"
-    }
+    # headers = {
+    #     "Ocp-Apim-Subscription-Key": azure_api_key,
+    #     "Content-Type": "application/ssml+xml",
+    #     "X-Microsoft-OutputFormat": "audio-16khz-32kbitrate-mono-mp3",
+    #     "User-Agent": "fastapi-tts"
+    # }
 
-    ssml = build_ssml(segments)
-    print("--- SSML GENERADO ---")
-    print(ssml)
-    print("---------------------")
-    
-    async with httpx.AsyncClient(timeout=None) as client:
-        response = await client.post(endpoint, headers= headers, content=ssml)
-        if response.status_code != 200:
-            print(f"DEBUG AZURE ERROR: {response.text}")
-            raise HTTPException(status_code=response.status_code, detail= response.text)
-    
-    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
-    tmp_file.write(response.content)
-    tmp_file.flush()
-    tmp_file.close()
+    # print("--- SSML GENERADO ---")
+    # print(ssml)
+    # print("---------------------")
 
-    file_stream = open(tmp_file.name, mode='rb')
+    ssml = build_ssml(segments).strip()
+    temp_path, timeline= build_audio_timeline(text=ssml, key=azure_api_key, region=service_region)
+    
+    # async with httpx.AsyncClient(timeout=None) as client:
+    #     response = await client.post(endpoint, headers= headers, content=ssml)
+    #     if response.status_code != 200:
+    #         print(f"DEBUG AZURE ERROR: {response.text}")
+    #         raise HTTPException(status_code=response.status_code, detail= response.text)
+    
+    # tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp3')
+    # tmp_file.write(response.content)
+    # tmp_file.flush()
+    # tmp_file.close()
+
+    file_stream = open(temp_path, mode='rb')
     
     def iterfile():
         try:
             yield from file_stream
         finally: 
             file_stream.close()
-            remove_file(tmp_file.name)
+            remove_file(temp_path)
     
     return StreamingResponse(  
         iterfile(), media_type='audio/mpeg',
-        headers={"Content-Disposition": 'attachment; filename="tts.mp3"'}
-    )
+        headers={"Content-Disposition": 'attachment; filename="tts.mp3"',
+                 "X-Timeline": str(timeline)
+                 }
+            )
     
