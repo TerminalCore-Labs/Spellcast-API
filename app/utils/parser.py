@@ -12,6 +12,7 @@ def parser_nodes(nodo: Node):
                 if mark.type == 'tts':
                     voz_actual = mark.attrs.voice
                     inflection = mark.attrs.inflection
+                    
 
         if nodo.text:
             nodo_text = nodo.text
