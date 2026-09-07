@@ -25,3 +25,5 @@ __pycache__/
 .DS_Store
 
 pendientes.txt
+# Fernet rotation backups (sensitive credential dump) — never commit
+credential_backup_*.sql

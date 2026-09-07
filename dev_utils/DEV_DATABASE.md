@@ -80,3 +80,12 @@ key must be the **service_role / secret** one (it bypasses RLS on `accounts.user
 | `permission denied for schema accounts` (`42501`) | `--no-privileges` stripped grants | `dev_provision.sql` (in the script) |
 | `pg_dump: aborting because of server version mismatch` | client older than server | install `postgresql-client-17` |
 | `/dev/account` 404 loop | `VITE_DUMMY_ID` not a user in dev, or Nhexa-API on the wrong key/project | step 3 |
+
+## Fernet key after a prod rotation
+
+`spellcast.credential.config` is encrypted with the prod Fernet key. Dev keeps its
+own (older) key on purpose. If you **re-clone** prod into dev *after* prod's Fernet
+key was rotated (see `dev_utils/rotate_fernet_key.py`), the cloned rows are now
+encrypted with the **new** prod key, which dev's `.env` does not have — decryption
+in dev will fail. When that happens, either put the new key in the dev `.env` too,
+or scrub the table: `delete from spellcast.credential;` (dev only).
