@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.models.grimoire import Spell
+from app.models.grimoire import Spell, Grimoire, SpellGrimoire
 from app.integrations.alchemy import get_db
 from fastapi import APIRouter, Depends, Request, HTTPException
 from app.models.user import Users
@@ -18,7 +18,12 @@ def get_spells(request: Request, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return db.query(Spell).all()
+    grimoire = db.query(Grimoire).filter(Grimoire.user_id == user_id).first()
+    if not grimoire:
+        return []
+    spell_grimoire = db.query(SpellGrimoire).filter(SpellGrimoire.grimoire_id == grimoire.id).all() 
+
+    return db.query(Spell).filter(Spell.id.in_([spell.spell_id for spell in spell_grimoire])).all()
 
 @router.post("/")
 async def create_spell(request: Request, db: Session = Depends(get_db)):
@@ -26,6 +31,7 @@ async def create_spell(request: Request, db: Session = Depends(get_db)):
     user= db.query(Users).filter(Users.id == user_id).first()
 
     if not user:
+        
         raise HTTPException(status_code=404, detail="User not found")
 
     body = await request.json()

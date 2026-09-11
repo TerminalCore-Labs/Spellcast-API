@@ -7,7 +7,6 @@ SECRET_KEY= PRIVATE_SECRET
 ALGORITHM = ALGORITHM
 
 async def authentication(request: Request, call_next):
-    print('la request: ', request.get('headers'))
 
     if request.method == "OPTIONS":
         return await call_next(request)

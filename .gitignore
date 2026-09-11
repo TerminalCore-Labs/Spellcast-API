@@ -12,6 +12,8 @@ __pycache__/
 
 # Variables de entorno
 .env
+.env.*
+!.env.example
 
 # Migraciones Alembic - NO ignorar la carpeta alembic/versions porque ahí están los scripts
 

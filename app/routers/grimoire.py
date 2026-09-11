@@ -38,5 +38,13 @@ async def create_grimoire(request: Request, db: Session = Depends(get_db)):
     return()
 
 @router.get("/")
-def get_grimoires(db: Session = Depends(get_db)):
-    return db.query(Grimoire).all()
+def get_grimoires(request: Request, db: Session = Depends(get_db)):
+    user_id = request.state.user.get('id')
+    user= db.query(Users).filter(Users.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    grimoire = db.query(Grimoire).filter(Grimoire.user_id == user_id).first()
+    if not grimoire:
+        return None
+    return grimoire
