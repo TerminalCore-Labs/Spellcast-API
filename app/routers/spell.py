@@ -31,6 +31,7 @@ async def create_spell(request: Request, db: Session = Depends(get_db)):
     user= db.query(Users).filter(Users.id == user_id).first()
 
     if not user:
+        
         raise HTTPException(status_code=404, detail="User not found")
 
     body = await request.json()
