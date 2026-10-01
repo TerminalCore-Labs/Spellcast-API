@@ -3,7 +3,8 @@ from app.integrations.alchemy import get_db
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app.models.user import Users
-from app.models.grimoire import Spell, SpellGrimoire, Grimoire
+from app.models.grimoire import SpellGrimoire, Grimoire
+from app.models.spell import Spell
 from app.integrations.boto3 import generate_presigned_url, delete_file
 from app.config import AWS_S3_BUCKET
 import uuid
